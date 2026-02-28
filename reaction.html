@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ Color Reaction Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #f093fb;
+            --secondary-color: #f5576c;
+            --bg-gradient-1: #667eea;
+            --bg-gradient-2: #764ba2;
+            --text-color: #fff;
+            --box-bg: #2a2a2a;
+            --box-active: #00ff00;
+            --flash-color: #ff0000;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+        }
+
+        body.theme-dark {
+            --bg-gradient-1: #0a0e27;
+            --bg-gradient-2: #1a1a3e;
+            --primary-color: #00d4ff;
+            --secondary-color: #ff006e;
+            --flash-color: #00d4ff;
+        }
+
+        body.theme-neon {
+            --bg-gradient-1: #00000a;
+            --bg-gradient-2: #1a0a2e;
+            --primary-color: #00ff00;
+            --secondary-color: #00ff00;
+            --flash-color: #00ff00;
+        }
+
+        body.theme-ocean {
+            --bg-gradient-1: #006064;
+            --bg-gradient-2: #004d40;
+            --primary-color: #00bcd4;
+            --secondary-color: #0097a7;
+            --flash-color: #00bcd4;
+        }
+
+        body.theme-forest {
+            --bg-gradient-1: #1b5e20;
+            --bg-gradient-2: #2e5632;
+            --primary-color: #76ff03;
+            --secondary-color: #4caf50;
+            --flash-color: #76ff03;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .info-bar {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            gap: 20px;
+        }
+
+        .score-box {
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .difficulty-display {
+            text-align: center;
+            font-size: 1.1em;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+            aspect-ratio: 1;
+        }
+
+        .box {
+            background: var(--box-bg);
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+        }
+
+        .box:hover {
+            border-color: var(--secondary-color);
+            transform: scale(1.02);
+        }
+
+        .box.active {
+            background: var(--box-active);
+            box-shadow: 0 0 20px var(--box-active), inset 0 0 10px var(--box-active);
+            transform: scale(0.95);
+        }
+
+        .box.flash {
+            background: var(--flash-color);
+            box-shadow: 0 0 30px var(--flash-color), inset 0 0 20px var(--flash-color);
+            transform: scale(1);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 1em;
+            font-weight: bold;
+            border: 2px solid var(--primary-color);
+            background: transparent;
+            color: var(--text-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: var(--primary-color);
+            color: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        button.start {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: #000;
+            border: none;
+        }
+
+        button.start:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-title {
+            font-size: 2em;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+
+        .modal-section {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .modal-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .color-options {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .color-option {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.selected {
+            border-color: #fff;
+            box-shadow: 0 0 15px currentColor;
+            transform: scale(1.15);
+        }
+
+        .difficulty-options {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .difficulty-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid #fff;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .difficulty-btn.selected {
+            background: #fff;
+            color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .difficulty-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #00ff00, #00cc00);
+            color: #000;
+            border: none;
+            margin-top: 20px;
+        }
+
+        .status-message {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            height: 30px;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .game-over-modal .modal-content {
+            text-align: center;
+        }
+
+        .game-over-modal .modal-title {
+            color: var(--primary-color);
+        }
+
+        .game-stats {
+            font-size: 1.3em;
+            margin: 20px 0;
+            line-height: 1.8;
+        }
+
+        .game-stats div {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">⚡ Color Reaction</div>
+        </div>
+
+        <div class="info-bar">
+            <div class="score-box">
+                <div class="score-label">Record</div>
+                <div class="score-value" id="recordScore">0</div>
+            </div>
+            <div class="score-box">
+                <div class="score-label">Current</div>
+                <div class="score-value" id="currentScore">0</div>
+            </div>
+        </div>
+
+        <div class="difficulty-display" id="difficultyDisplay">Difficulty: Easy</div>
+        <div class="status-message" id="statusMessage"></div>
+
+        <div class="game-grid" id="gameGrid"></div>
+
+        <div class="buttons">
+            <button class="start" id="startBtn" onclick="startGame()">Start Game</button>
+            <button onclick="openSettings()">⚙️ Settings</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-title">⚙️ Settings</div>
+
+            <div class="modal-section">
+                <label class="modal-label">Flash Color:</label>
+                <div class="color-options" id="colorOptions"></div>
+            </div>
+
+            <div class="modal-section">
+                <label class="modal-label">Difficulty:</label>
+                <div class="difficulty-options" id="difficultyOptions"></div>
+            </div>
+
+            <button class="start-btn" onclick="closeSettings()">Apply & Close</button>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div class="modal game-over-modal" id="gameOverModal">
+        <div class="modal-content">
+            <div class="modal-title" id="gameOverTitle">Game Over!</div>
+            <div class="game-stats">
+                <div>Final Score: <span id="finalScore">0</span></div>
+                <div>Record: <span id="recordDisplay">0</span></div>
+            </div>
+            <button class="start-btn" onclick="closeGameOver()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const colors = [
+            { name: 'Red', hex: '#ff0000' },
+            { name: 'Blue', hex: '#0000ff' },
+            { name: 'Yellow', hex: '#ffff00' },
+            { name: 'Cyan', hex: '#00ffff' },
+            { name: 'Magenta', hex: '#ff00ff' },
+            { name: 'Green', hex: '#00ff00' }
+        ];
+
+        const difficulties = {
+            easy: { name: 'Easy', flashDuration: 1400, delay: 1500 },
+            medium: { name: 'Medium', flashDuration: 900, delay: 1000 },
+            hard: { name: 'Hard', flashDuration: 500, delay: 600 }
+        };
+
+        let gameState = {
+            difficulty: 'easy',
+            flashColor: '#ff0000',
+            recordScore: parseInt(localStorage.getItem('colorReactionRecord')) || 0,
+            currentScore: 0,
+            gameActive: false,
+            gameRunning: false,
+            lastFlashedBox: null,
+            consecutiveHits: 0
+        };
+
+        function initGame() {
+            createGrid();
+            createColorOptions();
+            createDifficultyOptions();
+            loadSettings();
+            updateDisplay();
+        }
+
+        function createGrid() {
+            const grid = document.getElementById('gameGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                const box = document.createElement('div');
+                box.className = 'box';
+                box.id = `box-${i}`;
+                box.addEventListener('click', () => boxClicked(i));
+                grid.appendChild(box);
+            }
+        }
+
+        function createColorOptions() {
+            const colorOptions = document.getElementById('colorOptions');
+            colorOptions.innerHTML = '';
+            colors.forEach(color => {
+                const option = document.createElement('div');
+                option.className = 'color-option';
+                option.style.backgroundColor = color.hex;
+                if (color.hex === gameState.flashColor) {
+                    option.classList.add('selected');
+                }
+                option.addEventListener('click', () => selectColor(color.hex, option));
+                colorOptions.appendChild(option);
+            });
+        }
+
+        function selectColor(hex, element) {
+            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            gameState.flashColor = hex;
+            localStorage.setItem('colorReactionColor', hex);
+        }
+
+        function createDifficultyOptions() {
+            const diffOptions = document.getElementById('difficultyOptions');
+            diffOptions.innerHTML = '';
+            Object.keys(difficulties).forEach(key => {
+                const btn = document.createElement('button');
+                btn.textContent = difficulties[key].name;
+                btn.className = 'difficulty-btn';
+                if (key === gameState.difficulty) {
+                    btn.classList.add('selected');
+                }
+                btn.addEventListener('click', () => selectDifficulty(key, btn));
+                diffOptions.appendChild(btn);
+            });
+        }
+
+        function selectDifficulty(key, element) {
+            document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('selected'));
+            element.classList.add('selected');
+            gameState.difficulty = key;
+            localStorage.setItem('colorReactionDifficulty', key);
+        }
+
+        function loadSettings() {
+            const savedColor = localStorage.getItem('colorReactionColor');
+            const savedDifficulty = localStorage.getItem('colorReactionDifficulty');
+            
+            if (savedColor) gameState.flashColor = savedColor;
+            if (savedDifficulty) gameState.difficulty = savedDifficulty;
+            
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            document.getElementById('recordScore').textContent = gameState.recordScore;
+            document.getElementById('currentScore').textContent = gameState.currentScore;
+            document.getElementById('difficultyDisplay').textContent = `Difficulty: ${difficulties[gameState.difficulty].name}`;
+        }
+
+        function openSettings() {
+            if (gameState.gameRunning) return;
+            document.getElementById('settingsModal').classList.add('active');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+            updateDisplay();
+        }
+
+        function startGame() {
+            if (gameState.gameRunning) return;
+            
+            gameState.currentScore = 0;
+            gameState.gameRunning = true;
+            gameState.gameActive = false;
+            gameState.consecutiveHits = 0;
+            updateDisplay();
+            document.getElementById('startBtn').textContent = 'Game Running...';
+            document.getElementById('startBtn').disabled = true;
+            
+            playNextRound();
+        }
+
+        function playNextRound() {
+            if (!gameState.gameRunning) return;
+            
+            gameState.gameActive = false;
+            const randomBox = Math.floor(Math.random() * 9);
+            gameState.lastFlashedBox = randomBox;
+            
+            setTimeout(() => {
+                if (!gameState.gameRunning) return;
+                flashBox(randomBox);
+            }, difficulties[gameState.difficulty].delay);
+        }
+
+        function flashBox(boxIndex) {
+            const box = document.getElementById(`box-${boxIndex}`);
+            
+            box.style.backgroundColor = gameState.flashColor;
+            box.classList.add('flash');
+            gameState.gameActive = true;
+            
+            document.getElementById('statusMessage').textContent = '⚡ Click the box!';
+            
+            setTimeout(() => {
+                if (gameState.gameActive) {
+                    gameState.gameActive = false;
+                    box.style.backgroundColor = '';
+                    box.classList.remove('flash');
+                    document.getElementById('statusMessage').textContent = '❌ Missed!';
+                    
+                    setTimeout(() => {
+                        endGame();
+                    }, 800);
+                }
+            }, difficulties[gameState.difficulty].flashDuration);
+        }
+
+        function boxClicked(boxIndex) {
+            if (!gameState.gameActive || boxIndex !== gameState.lastFlashedBox) {
+                if (gameState.gameRunning && gameState.gameActive) {
+                    document.getElementById('statusMessage').textContent = '❌ Wrong box! Game Over!';
+                    endGame();
+                }
+                return;
+            }
+            
+            // Correct box clicked
+            gameState.gameActive = false;
+            const box = document.getElementById(`box-${boxIndex}`);
+            box.classList.add('active');
+            
+            gameState.currentScore += 10;
+            gameState.consecutiveHits++;
+            updateDisplay();
+            
+            document.getElementById('statusMessage').textContent = `✅ +10 Points! (Hits: ${gameState.consecutiveHits})`;
+            
+            setTimeout(() => {
+                box.classList.remove('active');
+                box.style.backgroundColor = '';
+                box.classList.remove('flash');
+                
+                if (gameState.gameRunning) {
+                    playNextRound();
+                }
+            }, 400);
+        }
+
+        function endGame() {
+            gameState.gameRunning = false;
+            document.getElementById('startBtn').textContent = 'Start Game';
+            document.getElementById('startBtn').disabled = false;
+            
+            if (gameState.currentScore > gameState.recordScore) {
+                gameState.recordScore = gameState.currentScore;
+                localStorage.setItem('colorReactionRecord', gameState.recordScore);
+                document.getElementById('gameOverTitle').textContent = '🏆 NEW RECORD!';
+            } else {
+                document.getElementById('gameOverTitle').textContent = 'Game Over!';
+            }
+            
+            document.getElementById('finalScore').textContent = gameState.currentScore;
+            document.getElementById('recordDisplay').textContent = gameState.recordScore;
+            document.getElementById('gameOverModal').classList.add('active');
+            
+            updateDisplay();
+        }
+
+        function closeGameOver() {
+            document.getElementById('gameOverModal').classList.remove('active');
+        }
+
+        function resetRecord() {
+            if (confirm('Are you sure you want to reset your record?')) {
+                gameState.recordScore = 0;
+                localStorage.setItem('colorReactionRecord', 0);
+                updateDisplay();
+            }
+        }
+
+        // Initialize on load
+        window.onload = initGame;
+    </script>
+</body>
+</html>
